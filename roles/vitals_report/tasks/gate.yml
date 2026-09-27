@@ -1,0 +1,39 @@
+---
+- name: Validate optional fleet gate configuration
+  ansible.builtin.assert:
+    that:
+      - linux_vitals_fail_on_status in ['', 'any_fail', 'regression']
+      - linux_vitals_fail_threshold_count | int >= 0
+    fail_msg: >-
+      linux_vitals_fail_on_status must be '', 'any_fail', or 'regression',
+      and linux_vitals_fail_threshold_count must be zero or greater.
+  delegate_to: localhost
+  run_once: true
+
+- name: Select fleet gate failure count
+  ansible.builtin.set_fact:
+    linux_vitals_gate_failure_count: >-
+      {{
+        linux_vitals_summary.critical_error_count | int
+        if linux_vitals_fail_on_status == 'any_fail'
+        else linux_vitals_summary.regressed_count | int
+        if linux_vitals_fail_on_status == 'regression'
+        and linux_vitals_phase == 'postcheck'
+        else 0
+      }}
+  delegate_to: localhost
+  run_once: true
+
+- name: Fail the run when the opted-in fleet gate is exceeded
+  ansible.builtin.fail:
+    msg: >-
+      LinuxVitals fleet gate failed: mode={{ linux_vitals_fail_on_status }},
+      failures={{ linux_vitals_gate_failure_count }},
+      threshold={{ linux_vitals_fail_threshold_count }}.
+      Reports were written before this gate; see {{ linux_vitals_output_path }}
+      and {{ linux_vitals_json_output_path }}.
+  when:
+    - linux_vitals_fail_on_status | length > 0
+    - linux_vitals_gate_failure_count | int > linux_vitals_fail_threshold_count | int
+  delegate_to: localhost
+  run_once: true
