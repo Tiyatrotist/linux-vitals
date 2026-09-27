@@ -63,6 +63,31 @@ ansible-playbook -i inventory.ini sameeralam3127.linux_vitals.baseline \
 
 Each writes to its own `reports/snapshots/<maintenance_id>/` subtree.
 
+## Fail a CI job on unhealthy or regressed hosts
+
+The fleet gate is opt-in. Reports, archives, and notifications are produced
+before the gate runs.
+
+Fail when more than two hosts are currently failing:
+
+```bash
+ansible-playbook -i inventory.ini sameeralam3127.linux_vitals.healthcheck \
+  -e linux_vitals_fail_on_status=any_fail \
+  -e linux_vitals_fail_threshold_count=2
+```
+
+For a maintenance pipeline, fail only when a host that passed the baseline now
+fails the postcheck:
+
+```bash
+ansible-playbook -i inventory.ini sameeralam3127.linux_vitals.postcheck \
+  -e linux_vitals_maintenance_id=release-2026-09-27 \
+  -e linux_vitals_fail_on_status=regression
+```
+
+Leaving `linux_vitals_fail_on_status` blank preserves the default behavior:
+fleet health does not change the playbook exit code.
+
 ## CI validation (this repo's own approach)
 
 ```yaml
