@@ -149,7 +149,9 @@ point of running all four:
 | Scenario | `reboot_required_source` |
 | --- | --- |
 | `ubuntu` | `reboot-required-file` |
+| `debian` | `reboot-required-file` |
 | `rocky` | `needs-restarting` |
+| `amazonlinux` | `needs-restarting` |
 | `fedora` | `dnf-needs-restarting` (dnf5) |
 | `opensuse` | `zypper-needs-rebooting` |
 
