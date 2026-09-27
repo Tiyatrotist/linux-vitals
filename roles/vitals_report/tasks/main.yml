@@ -46,3 +46,12 @@
   tags:
     - reporting
     - notifications
+
+- name: Apply optional fleet health gate after reporting and notifications
+  ansible.builtin.include_tasks:
+    file: gate.yml
+    apply:
+      tags:
+        - reporting
+  tags:
+    - reporting
